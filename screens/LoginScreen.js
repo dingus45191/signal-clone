@@ -1,18 +1,27 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { KeyboardAvoidingView } from "react-native";
 import { StyleSheet, View, Text } from "react-native";
-import { Image, Input , Button } from "react-native-elements";
+import { Image, Input, Button } from "react-native-elements";
+import { auth } from "../firebase";
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const signIn= ()=>{
+  useEffect(() => {
+   const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        navigation.replace("Home");
+      }
+    });
 
-  }
+    
+    return unsubscribe;
+  }, []);
+  const signIn = () => {};
 
   return (
-    <KeyboardAvoidingView  behavious="padding" enabled style={styles.container}>
+    <KeyboardAvoidingView behavious="padding" enabled style={styles.container}>
       <StatusBar style="light" />
       <Image
         source={{
@@ -38,10 +47,15 @@ const LoginScreen = ({navigation}) => {
         />
       </View>
       <Button containerStyle={styles.Button} onPress={signIn} title="Login" />
-      <Button  onPress={() =>{
-        navigation.navigate('Register')
-      }}containerStyle={styles.Button} type="outline" title="Register" />
-      <View style={{height:100}}/>
+      <Button
+        onPress={() => {
+          navigation.navigate("Register");
+        }}
+        containerStyle={styles.Button}
+        type="outline"
+        title="Register"
+      />
+      <View style={{ height: 100 }} />
     </KeyboardAvoidingView>
   );
 };
@@ -51,16 +65,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding:10,
-    backgroundColor:"white",
+    padding: 10,
+    backgroundColor: "white",
   },
   inputContainer: {
     width: 300,
   },
- Button: {
-   width:200,
-   marginTop:10
- },
+  Button: {
+    width: 200,
+    marginTop: 10,
+  },
 });
 
 export default LoginScreen;
