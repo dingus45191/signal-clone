@@ -1,10 +1,25 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React from "react";
+import { View, Text } from "react-native";
+import { Avatar, ListItem } from "react-native-elements";
 
-export default function componentName() {
+export default function CustomListItem({id, chatName,enterChat}) {
   return (
-    <View>
-      <Text></Text>
-     </View>
+    <ListItem>
+      <Avatar
+        rounded
+        source={{
+          uri:
+            "https://avatars.githubusercontent.com/u/60180419?s=460&u=5135c6af08fc8ae159e854882cd816efa82c7da5&v=4",
+        }}
+      />
+      <ListItem.Content>
+        <ListItem.Title style={{ fontWeight: '800' }}>
+          Youtube Chat
+        </ListItem.Title>
+        <ListItem.Subtitle numberOfLines={1} ellipsizeMode={"tail"}>
+          This is a test subtitle
+        </ListItem.Subtitle>
+      </ListItem.Content>
+    </ListItem>
   );
 }

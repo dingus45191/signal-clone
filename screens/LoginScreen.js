@@ -18,7 +18,9 @@ const LoginScreen = ({ navigation }) => {
     
     return unsubscribe;
   }, []);
-  const signIn = () => {};
+  const signIn = () => {
+    auth.signInWithEmailAndPassword(email, password).catch((err) => {alert(err)})
+  };
 
   return (
     <KeyboardAvoidingView behavious="padding" enabled style={styles.container}>
@@ -46,7 +48,7 @@ const LoginScreen = ({ navigation }) => {
           onChangeText={(password) => setPassword(password)}
         />
       </View>
-      <Button containerStyle={styles.Button} onPress={signIn} title="Login" />
+      <Button containerStyle={styles.Button} onPress={signIn} title="Login" onSubmitEditing={signIn}/>
       <Button
         onPress={() => {
           navigation.navigate("Register");
