@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Platform, TouchableOpacity } from "react-native";
 import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { Avatar } from "react-native-elements";
@@ -85,22 +85,26 @@ const ChatScreen = ({ navigation, route }) => {
     setInput("");
   };
 
-  useLayoutEffect(() => {
-    const unsubscribe = db
-      .collection("chats")
-      .doc(route.params.id)
-      .collection("messages")
-      .orderBy("timestamp", "asc")
-      .onSnapshot((snapshot) => {
-        sendMessage(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            data: doc.data(),
-          }))
-        );
-      });
-    return unsubscribe, [route];
+  useEffect(() => {
+    () => {
+      const unsubscribe = db
+        .collection("chats")
+        .doc(route.params.id)
+        .collection("messages")
+        .orderBy("timestamp", "asc")
+        .onSnapshot((snapshot) => {
+          sendMessage(
+            snapshot.docs.map((doc) => ({
+              id: doc.id,
+              data: doc.data(),
+            }))
+          );
+        });
+      return unsubscribe;
+      [route];
+    };
   });
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -110,17 +114,40 @@ const ChatScreen = ({ navigation, route }) => {
         keyboardVerticalOffset={90}
       >
         <>
-          <ScrollView>
+          <ScrollView contentContainerStyle={{ paddingTop: 15 }}>
             {messages.map(({ id, data }) => {
               return data.email === auth.currentUser.email ? (
                 <View key={id} style={styles.receiver}>
-                  <Avatar />
+                  <Avatar
+                    source={{ uri: data.photoURL }}
+                    position="absolute"
+                    bottom={-15}
+                    right={-15}
+                    //Web
+                    containerStyle={{
+                      position: "absolute",
+                      bottom: -15,
+                      right: -15,
+                    }}
+                  />
                   <Text style={styles.receiverText}>{data.message}</Text>
                 </View>
               ) : (
                 <View key={id} style={styles.sender}>
-                  <Avatar />
+                  <Avatar
+                    source={{ uri: data.photoURL }}
+                    position="absolute"
+                    bottom={-15}
+                    right={-15}
+                    //Web
+                    containerStyle={{
+                      position: "absolute",
+                      bottom: -15,
+                      right: -15,
+                    }}
+                  />
                   <Text style={styles.senderText}>{data.message}</Text>
+                  <Text style={styles.senderName}>{data.displayName}</Text>
                 </View>
               );
             })}
@@ -129,10 +156,11 @@ const ChatScreen = ({ navigation, route }) => {
             <View style={styles.footer}>
               <TextInput
                 value={input}
-                onChangeText={(text) => setInput(text)}
+                onChangeText={(text) => {
+                  setInput(text);
+                }}
                 placeholder={"Signal Message"}
                 style={styles.textInput}
-                onSubmitEditing={sendMessage}
               />
               <TouchableOpacity activeOpacity={0.5} onPress={sendMessage}>
                 <Ionicons name="send" size={24} color={"#2B68E6"} />
@@ -171,6 +199,23 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
     position: "relative",
   },
+  senderName: {
+    left: 10,
+    paddingRight: 10,
+    fontSize: 10,
+    color: "white",
+  },
+  senderText: {
+    color: "white",
+    fontWeight: "500",
+    marginLeft: 10,
+    marginBottom: 15,
+  },
+  receiverText: {
+    color: "black",
+    fontWeight: "500",
+    marginLeft: 10,
+  },
   footer: {
     flexDirection: "row",
     alignItems: "center",
@@ -187,6 +232,5 @@ const styles = StyleSheet.create({
     padding: 10,
     color: "grey",
     borderRadius: 30,
-    outlineWidth: 0,
   },
 });
