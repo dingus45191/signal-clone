@@ -16,7 +16,7 @@ const ChatScreen = ({ navigation, route }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     navigation.setOptions({
       title: "Chat",
       headerBackTitleVisible: false,
@@ -32,6 +32,7 @@ const ChatScreen = ({ navigation, route }) => {
             rounded
             source={{
               uri:
+                messages[0]?.data.photoURL ||
                 "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse3.mm.bing.net%2Fth%3Fid%3DOIP.3-rUE4SORzLoGxaLp7KvLAHaHa%26pid%3DApi&f=1",
             }}
           />
@@ -72,7 +73,7 @@ const ChatScreen = ({ navigation, route }) => {
         </View>
       ),
     });
-  }, [navigation]);
+  }, [navigation, messages]);
   const sendMessage = () => {
     Keyboard.dismiss();
     db.collection("chats").doc(route.params.id).collection("messages").add({
@@ -85,25 +86,22 @@ const ChatScreen = ({ navigation, route }) => {
     setInput("");
   };
 
-  useEffect(() => {
-    () => {
-      const unsubscribe = db
-        .collection("chats")
-        .doc(route.params.id)
-        .collection("messages")
-        .orderBy("timestamp", "asc")
-        .onSnapshot((snapshot) => {
-          sendMessage(
-            snapshot.docs.map((doc) => ({
-              id: doc.id,
-              data: doc.data(),
-            }))
-          );
-        });
-      return unsubscribe;
-      [route];
-    };
-  });
+  useLayoutEffect(() => {
+    const unsubscribe = db
+      .collection("chats")
+      .doc(route.params.id)
+      .collection("messages")
+      .orderBy("timestamp", "asc")
+      .onSnapshot((snapshot) =>
+        setMessages(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }))
+        )
+      );
+    return unsubscribe;
+  }, [route]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -131,11 +129,16 @@ const ChatScreen = ({ navigation, route }) => {
                     }}
                   />
                   <Text style={styles.receiverText}>{data.message}</Text>
+                  <Text style={styles.receiverName}>You</Text>
                 </View>
               ) : (
                 <View key={id} style={styles.sender}>
                   <Avatar
-                    source={{ uri: data.photoURL }}
+                    source={{
+                      uri:
+                        messages[0]?.data.photoURL ||
+                        "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse3.mm.bing.net%2Fth%3Fid%3DOIP.3-rUE4SORzLoGxaLp7KvLAHaHa%26pid%3DApi&f=1",
+                    }}
                     position="absolute"
                     bottom={-15}
                     right={-15}
@@ -161,6 +164,7 @@ const ChatScreen = ({ navigation, route }) => {
                 }}
                 placeholder={"Signal Message"}
                 style={styles.textInput}
+                onSubmitEditing={sendMessage}
               />
               <TouchableOpacity activeOpacity={0.5} onPress={sendMessage}>
                 <Ionicons name="send" size={24} color={"#2B68E6"} />
@@ -205,6 +209,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "white",
   },
+  receiverName: {
+    right: 10,
+    paddingRight: 10,
+    fontSize: 10,
+    color: "black",
+  },
   senderText: {
     color: "white",
     fontWeight: "500",
@@ -216,6 +226,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginLeft: 10,
   },
+
   footer: {
     flexDirection: "row",
     alignItems: "center",
